@@ -1,6 +1,6 @@
 # TODO - Your title
 
-This is the working area for the individual Internet-Draft, "TODO - Your title".
+This is the working area for the individual Internet-Draft, "Authenticating a Network Connection".
 
 * [Editor's Copy](https://danwing.github.io/authenticating-network/#go.draft-wing-authenticating-network.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-wing-authenticating-network)
