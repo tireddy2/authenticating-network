@@ -39,6 +39,7 @@ author:
 normative:
   DNR:    I-D.ietf-add-dnr
   DDR:    I-D.ietf-add-ddr
+  AKA:    I-D.ietf-emu-aka-pfs
 
 informative:
   Evil-Twin:
@@ -49,7 +50,7 @@ informative:
       -
         name: Wikipedia
 
-  Evil-Twin:
+  IEEE802.11:
     title: "IEEE802.11"
     date: 2022-08
     target: "https://en.wikipedia.org/wiki/IEEE_802.11"
@@ -105,9 +106,8 @@ This document describes how a wireless client can utilize
 network-advertised encrypted DNS servers to verify initial connection
 to the intended network and automatically verify re-connection to the
 same intended network. The proposed mechanism is also useful in deployments
-using Opportunistic Wireless Encryption [RFC8110].
-
-
+using Opportunistic Wireless Encryption [RFC8110] and in 5G networks where the long-term
+key in the SIM card on the UE is compromised (Section 1 of [AKA]).
 
 # Conventions and Definitions
 
@@ -141,8 +141,10 @@ are stored on the client.
 An example is provided below for illustrative purpose.
 
 ~~~
-SSID:"Example"; BSSID:"d8:c7:c8:44:32:40": Discovery:"DNR"; Identity:"resolver1.example.com"
-SSID:"Example2"; BSSID:"d8:c7:c8:44:32:42": Discovery:"DDR"; Identity:"8.8.8.8"
+SSID:"Example"; BSSID:"d8:c7:c8:44:32:40":
+Discovery:"DNR"; Identity:"resolver1.example.com".
+SSID:"Example2"; BSSID:"d8:c7:c8:44:32:42":
+Discovery:"DDR"; Identity:"8.8.8.8".
 ~~~
 
 If this is not the first time connecting to this same SSID,
@@ -172,7 +174,7 @@ included as part of the SSID.  Thus the only safe SSID name provides
 no information to assist social engineering attacks such as a
 customer number (customer-123.example.net), assuming the customer
 number can safely be disclosed to neighbors. However, the above
-attack may not be applicable for Wi-Fi hotspots (e.g, 123-Main-Street.cofeeshop.com).
+attack may not be applicable for public Wi-Fi hotspots (e.g, 123-Main-Street.cofeeshop.com).
 
 # Common WiFi Names
 
