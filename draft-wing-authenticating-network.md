@@ -30,7 +30,7 @@ author:
     email: "dwing-ietf@fuggles.com"
  -
     ins: T. Reddy
-    fullname: Tiru Reddy
+    fullname: Tirumaleswar Reddy
     organization: Nokia
     email: "kondtir@gmail.com"
 
@@ -49,12 +49,21 @@ informative:
       -
         name: Wikipedia
 
+  Evil-Twin:
+    title: "IEEE802.11"
+    date: 2022-08
+    target: "https://en.wikipedia.org/wiki/IEEE_802.11"
+    author:
+      -
+        name: Wikipedia
+
   RFC8792: RFC8792
+  RFC8110: RFC8110
 
 
 --- abstract
 
-When connecting to a wired or wireless network, users assume the same network exists each time.  This
+When connecting to a wireless network, users assume the same network exists each time.  This
 document describes how a network client can verify it is, in fact, connecting to the same network,
 without relying on layer 1 or layer 2 security.
 
@@ -63,24 +72,41 @@ without relying on layer 1 or layer 2 security.
 
 # Introduction
 
-When a client connects to a network -- wired or wireless -- the user
+When a client connects to a network -- wireless -- the user
 or their device want to be sure the connection is to the expected
 network, as different networks provides different services --
 performance, security, access to split-horizon DNS servers, and so on.
 Although 802.1X provides layer 2 security for both Ethernet and WiFi
 networks achieving the goals of this document, 802.1X is not widely
-deployed and unavailable on LTE and 5G networks.
+deployed and unavailable on residential or small office/home office
+and Wi-Fi hotspots (e.g., coffeeshop, hotel, airport network).
 
-On wired networks a malicious actor or innocent cabling or VLAN
-configuration mistakes can cause the same physical Ethernet jack to
-connect to a different network.  On WiFi networks a malicious actor
-can operate a rogue access point with the same SSID and WPA-PSK as the
-victim network [Evil-Twin].
+On WiFi networks a malicious actor can operate a rogue access point
+with the same SSID and WPA-PSK as the victim network [Evil-Twin].
+In many deployments (for example, coffee shops and bars) offer free Wi-Fi as an incentive to customers
+to enter and remain in the premises.  Many customers will use the availability of free Wi-Fi
+as a deciding factor in which business to patronize. Since these businesses are not Internet
+service providers, they are often unwilling and/or unqualified to perform complex
+configuration on their network.  In addition, customers are generally unwilling to do
+complicated provisioning on their devices just to obtain free Wi-Fi.
+This leads to a popular deployment technique -- a network protected
+using a shared and public Pre-Shared Key (PSK) that is printed on a
+sandwich board at the entrance, on a chalkboard on the wall, or on a
+menu.  The PSK is used in a cryptographic handshake, defined in
+[IEEE802.11], called the "4-way handshake" to prove knowledge of the
+PSK and derive traffic encryption keys for bulk wireless data. The same
+deployement technique is typically used in residential or small office/home office
+networks. If the Pre-Shared Key (PSK) for wireless authentication
+is the same for all clients that connect to the same WLAN, the shared key
+will be available to all nodes, including attackers, so it is possible to
+mount an active on-path attack.
 
-This document describes how a wired or wireless client can utilize
+This document describes how a wireless client can utilize
 network-advertised encrypted DNS servers to verify initial connection
 to the intended network and automatically verify re-connection to the
-same intended network.
+same intended network. The proposed mechanism is also useful in deployments
+using Opportunistic Wireless Encryption [RFC8110].
+
 
 
 # Conventions and Definitions
@@ -95,28 +121,34 @@ The network indicates its encrypted DNS server using either [DNR] or [DDR].  The
 to that encrypted DNS server, completes the TLS handshake and performs public key validation of
 the presented certificate.
 
-> todo: need name of, and citation to, the 3gpp mechanism.
-
-As a wired network has no 'name', the network name can be considered blank. This
-isn't ideal, but it still allows the client to distinguish between the first
-connection to a network versus re-connecting to a network.
-
-The client device's imprecise location (if known) and the WiFi network
-name (SSID) can be associated with the encrypted DNS server's
-SubjectAltName that was learned via [DNR] or [DDR].
+The client device's imprecise location (if known), the WiFi network
+name (SSID) and Basic Service Set Identifier (BSSID) can be associated with the encrypted DNS server's
+Authentication Domain Names (ADNs) that were learned via [DNR] or the encrypted DNS server's IP addresses
+that were learned via the mechanism dicsussed in Section 4 of [DDR]. If DDR is used for discovery,
+the client would have to perform verified discovery explained in Section 4.2 of [DDR]. If DNR is used,
+the encrypted DNS server's identity will be the ADNs; if DDR is used, the resolver identity will be the
+encrypted DNS server's IP addresses.
 
 If this is the first time connecting to that encrypted DNS server's identity,
 an action can be performed such as prompting the user for verification,
 verifying the encrypted DNS server's certificate with the fingerprint provided
 in an extended WiFi QR code ({{qr}}), consulting a crowd-sourced database,
-or -- perhaps best -- using a matching SSID and SubjectAltName described
+reputation system, or -- perhaps best -- using a matching SSID and SubjectAltName described
 in {{avoid-tofu}}.  After this step, the relationship of location, WiFi network
-name, and SubjectAltName are stored on the client.
+name, BSSID, encrypted resolver disovery mechanism and encrypted DNS server's identity
+are stored on the client.
+
+An example is provided below for illustrative purpose.
+
+~~~
+SSID:"Example"; BSSID:"d8:c7:c8:44:32:40": Discovery:"DNR"; Identity:"resolver1.example.com"
+SSID:"Example2"; BSSID:"d8:c7:c8:44:32:42": Discovery:"DDR"; Identity:"8.8.8.8"
+~~~
 
 If this is not the first time connecting to this same SSID,
-the client location, WiFi network name, and SubjectAltName should all
-match for this re-connection.  If the SubjectAltName differs, this indicates
-a different network than expected -- either a different network
+the client location, WiFi network name, BSSID, encrypted resolver disovery mechanism and encrypted DNS server's
+identity should all match for this re-connection.  If the encrypted DNS server's identity differs, this indicates
+a different network than expected -- either a different network or a Evil Twin.
 
 > todo: if a network advertises 8.8.8.8 via DNR or DDR, we can't
     detect an evil twin.  How do we identify 8.8.8.8 as a public DNS
@@ -139,7 +171,8 @@ information if the network's physical address
 included as part of the SSID.  Thus the only safe SSID name provides
 no information to assist social engineering attacks such as a
 customer number (customer-123.example.net), assuming the customer
-number can safely be disclosed to neighbors.
+number can safely be disclosed to neighbors. However, the above
+attack may not be applicable for Wi-Fi hotspots (e.g, 123-Main-Street.cofeeshop.com).
 
 # Common WiFi Names
 
@@ -157,7 +190,6 @@ By using device location, client devices can avoid spurious
 
 The network authentication mechanism relies on an attacker's inability
 to obtain a signed certificate for the victim's domain name.
-
 
 
 # IANA Considerations
